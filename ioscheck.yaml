@@ -1,0 +1,22 @@
+---
+
+- name: check ios version
+  hosts: Router
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: cisco
+      password: cisco
+      timeout: 100
+  
+  tasks:
+    - name: check current version
+      ios_facts:
+        provider: "{{ cli }}"
+    - debug:
+        msg:
+        -  "current version is {{ ansible_net_version }}"
+      
+      register: print_output   

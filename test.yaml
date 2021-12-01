@@ -1,0 +1,8 @@
+---
+- name: Check Image Version      
+     ios_facts:
+
+   - debug: 
+       msg: 
+       - "Current version is {{ ansible_net_version }}"
+

@@ -1,0 +1,119 @@
+---
+
+# Playbook for upgrading IOS 
+
+- name: upgrade cisco ios
+  hosts: Router
+  connection: network_cli
+
+  vars: 
+    upgrade_ios_version: c3725-adventerprisek9-mz124-15
+  
+  tasks:
+  - name: check current version
+    ios_facts:
+
+  - debug:
+      msg:
+      - "curent version is {{ ansible_net_version }}"
+      - "upgrade image is c3725-adventerprisek9-mz124-15"
+
+  - debug:
+      msg:
+      - "image is not compliant and will be upgraded"
+
+    when: ansible_net_version != upgrade_ios_version
+
+ ## create back up for today
+- hosts: localhost
+
+  tasks:
+   - name: Get ansible date/time facts
+     setup:
+       filter: "ansible_date_time"
+       gather_subset: "!all"
+
+   - name: store DTG as fact
+     set_fact:
+       DTG: "{{ ansible_date_time.date }}"
+
+   - name: Create Directory {{hostvars.localhost.DTG}}
+     file:
+      path: /etc/ansible/backups/{{ hostvars.localhost.DTG }}       
+      state: directory
+  run_once: true   
+
+  ## Backup Running Config
+
+- hosts: Router
+
+  tasks:
+   - name: Backup Running config
+     ios_command: 
+       commands: show run
+     register: config
+
+   - name: save to local directory
+     copy:
+       content: "{{ config.stdout | replace('\\n', '\n') }}"
+       dest: "/etc/ansible/backups/sh_commands_{{ inventory_hostname }}.txt"
+
+  ## save the Running config
+
+   - name: save the Running config
+     ios_config:
+       save_when: always
+  ## Copy ios to target Device
+
+   - name: copy image //This could take some time.Standby!!
+     net_put:
+       src: "etc/ansible/images/c3725-adventerprisek9-mz124-15.bin"
+       dest: "flash:c3725-adventerprisek9-mz124-15.bin"
+     vars:  
+       ansible_command_timeout: 1800
+
+ ## change the boot variable
+   - name: change boot 
+     ios_config: 
+       commands:
+         - "boot system flash:c3725-adventerprisek9-mz124-15.bin"
+       save_when: always
+        
+  ##Reload The device  
+
+   - name: Relaod the device
+     cli_command:
+       command: reload
+       prompt:
+         - confirm
+       answer:
+         - 'y'     
+  ## Wait for Reachablity to device
+
+   - name: wait for device to come back online
+     wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 1200
+     delegate_to: localhost       
+
+  ## check Current image
+   - name: check image Version
+     ios_facts:
+     
+   - debug:
+        msg:
+        - " Current version is {{ ansible_net_version }}"
+    
+   - name: Confirm that the IOS version is correct
+     vars:
+        upgrade_ios_version: c3725-adventerprisek9-mz124-15.bin     
+      
+     assert:
+        that:      
+   - upgrade_ios_version == ansible_net_version
+   - debug:
+        msg:
+        - "software upgrade has been completed"       
+       
+

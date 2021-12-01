@@ -1,0 +1,16 @@
+---
+
+- name: sh version example
+  hosts: Router
+  gather_facts: false
+  connection: network_cli
+
+  tasks:
+    - name: sh ver
+      ios_command:
+        commands: sh ver 
+      register: output
+
+    - name: print output
+      debug:
+        var: output.stdout_lines     

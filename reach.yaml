@@ -1,0 +1,19 @@
+---
+
+- name: reachablity test
+  hosts: Router
+  connection: network_cli
+
+  tasks: 
+  - name: checking  router is reachable
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      port: 22
+      delay: 90
+    delegate_to: localhost
+    register: output
+
+  - name:
+    debug:
+      var: output.stdout_lines    
+

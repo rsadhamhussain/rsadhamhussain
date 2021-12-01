@@ -1,0 +1,17 @@
+---
+
+- name: Write command without write command
+  hosts: Router
+  gather_facts: yes
+  connection: network_cli
+
+  tasks:
+  - name: save config
+    ios_facts:
+      gather_subset: 
+      -  config      
+      register: output
+
+  - debug:
+       var: output:stdout.lines    
+

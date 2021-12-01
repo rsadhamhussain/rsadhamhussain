@@ -1,0 +1,14 @@
+---
+
+- hosts: Router
+  gather_facts: false
+  connection: network_cli
+
+  tasks:
+  - name: push config
+    ios_config:
+      src: "/etc/ansible/playbook/simpletext.txt"
+
+  - name: save config
+    ios_config:
+      save_when: modified    

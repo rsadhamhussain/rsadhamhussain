@@ -1,0 +1,22 @@
+---
+
+- name: capture show output
+  hosts: Router
+  gather_facts: true
+  connection: network_cli
+
+  tasks:
+   - name: show commands
+     ios_command:
+       commands:      
+       - sh run
+       - sh ver
+       - sh ip int br
+       - sh ip route
+     register: config
+
+   - name: save to local directory   
+     copy:
+       content: "{{ config.stdout | replace('\\n', '\n') }}"
+       dest: "/etc/ansible/backups/sh_commands_{{ inventory_hostname }}.txt"
+      

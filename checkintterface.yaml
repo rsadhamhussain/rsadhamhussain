@@ -1,0 +1,25 @@
+---
+
+- name: Show ip int br
+  hosts: Router
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: cisco
+      password: cisco
+      timeout: 100
+  tasks:
+    - name: show interface
+      ios_command:
+        provider: "{{ cli }}"
+        lines:
+         - do sh ip int br
+        register: output
+
+    - name: print output
+      debug:
+         var: output.stdout_lines   
+      
+           

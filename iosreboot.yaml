@@ -1,0 +1,21 @@
+---
+
+- name: Save and reload
+  hosts: Router
+  gather_facts: false
+  connection: local
+  
+  vars:
+    cli:
+      username: cisco
+      password: cisco
+      timeout: 100
+  tasks:      
+    - name: save config
+      ios_facts:
+        provider: "{{ cli }}"
+    - name: write config
+      ios_config:
+        save_when: always     
+        
+      register: print_output     

@@ -1,0 +1,42 @@
+---
+
+- name: upgrade
+  hosts: Router
+  gather_facts: true
+  connection: network_cli
+  
+  
+  tasks:
+   - name: copy 
+     net_put:
+       src: "/etc/ansible/images/c3725-adventerprisek9-mz124-15.bin"
+       dest: "flash:/c3725-adventerprisek9-mz124-15.bin"
+    
+     vars:
+       ansible_command_timeout: 1800
+   - name: change boot
+     ios_config:
+       commands:
+         - "boot system flash:c3725-adventerprisek9-mz124-15.bin"
+       save_when: always
+   - name: reload 
+     cli_command:
+       command: reload
+       prompt:
+         - confirm
+       answer:
+         - 'y'
+   - name: device back online
+     wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 1200
+     delegate_to: localhost
+
+   - name: check version
+     ios_facts:
+   - debug:
+        msg:
+        -  "{{ ansible_net_version }}"     
+         
+            
